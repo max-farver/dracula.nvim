@@ -101,7 +101,7 @@ local function get_configs()
       configs.theme = 'dracula-soft'
       configs.colors = require('dracula.palette-soft')
    elseif g.colors_name == 'alucard' then
-      configs.theme = 'dracula'
+      configs.theme = 'dracula-alucard'
       configs.colors = require('dracula.palette-alucard')
    elseif g.colors_name == 'dracula' then
       configs.theme = 'dracula'

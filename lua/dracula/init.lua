@@ -138,7 +138,12 @@ local function load(theme)
       cmd("syntax reset")
    end
 
-   o.background = "dark"
+   if theme == 'dracula-alucard' then
+      o.background = "light"
+   else
+      o.background = "dark"
+   end
+
    o.termguicolors = true
    g.colors_name = theme or 'dracula'
 

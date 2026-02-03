@@ -25,6 +25,29 @@
 
 ---@alias HighlightGroups table<string, Highlight>
 
+local function hex_to_rgb(c)
+   c = string.lower(c)
+   return { tonumber(c:sub(2, 3), 16), tonumber(c:sub(4, 5), 16), tonumber(c:sub(6, 7), 16) }
+end
+
+local function blend(foreground, background, alpha)
+   alpha = type(alpha) == "string" and (tonumber(alpha, 16) / 0xff) or alpha
+   local bg = hex_to_rgb(background)
+   local fg = hex_to_rgb(foreground)
+
+   local function channel(i)
+      local ret = (alpha * fg[i] + ((1 - alpha) * bg[i]))
+      return math.floor(math.min(math.max(0, ret), 255) + 0.5)
+   end
+
+   return string.format("#%02x%02x%02x", channel(1), channel(2), channel(3))
+end
+
+local function darken(hex, amount, bg)
+   return blend(hex, bg, amount)
+end
+
+
 ---setup highlight groups
 ---@param configs DraculaConfig
 ---@return HighlightGroups
@@ -68,7 +91,7 @@ local function setup(configs)
       StorageClass = { fg = colors.pink, },
       Structure = { fg = colors.yellow, },
       TypeDef = { fg = colors.yellow, },
-      Special = { fg = colors.green, italic = true },
+      Special = { fg = colors.green },
       SpecialComment = { fg = colors.comment, italic = true, },
       Error = { fg = colors.bright_red, },
       Todo = { fg = colors.purple, bold = true, italic = true, },
@@ -90,10 +113,16 @@ local function setup(configs)
       StatusLineTermNC = { fg = colors.comment, },
 
       Directory = { fg = colors.cyan, },
-      DiffAdd = { fg = colors.bg, bg = colors.green, },
-      DiffChange = { fg = colors.orange, },
-      DiffDelete = { fg = colors.red, },
-      DiffText = { fg = colors.comment, },
+      DiffAdd = { bg = darken(colors.bright_green, 0.15, colors.bg) },
+      DiffDelete = { fg = darken(colors.bright_red, 0.15, colors.bg) },
+      DiffChange = { bg = darken(colors.comment, 0.15, colors.bg) },
+      DiffText = { bg = darken(colors.comment, 0.50, colors.bg) },
+
+      illuminatedWord = { bg = darken(colors.comment, 0.65, colors.bg) },
+      illuminatedCurWord = { bg = darken(colors.comment, 0.65, colors.bg) },
+      IlluminatedWordText = { bg = darken(colors.comment, 0.65, colors.bg) },
+      IlluminatedWordRead = { bg = darken(colors.comment, 0.65, colors.bg) },
+      IlluminatedWordWrite = { bg = darken(colors.comment, 0.65, colors.bg) },
 
       ErrorMsg = { fg = colors.bright_red, },
       VertSplit = { fg = colors.black, },
@@ -186,9 +215,9 @@ local function setup(configs)
       ['@markup.strong'] = { fg = colors.orange, bold = true, },     -- bold
       ['@markup.emphasis'] = { fg = colors.yellow, italic = true, }, -- italic
       ['@markup.underline'] = { fg = colors.orange, },
-      ['@markup.heading'] = { fg = colors.pink, bold = true, },        -- title
-      ['@markup.raw'] = { fg = colors.yellow, },                 -- inline code
-      ['@markup.link.url'] = { fg = colors.yellow, italic = true, },      -- urls
+      ['@markup.heading'] = { fg = colors.pink, bold = true, },      -- title
+      ['@markup.raw'] = { fg = colors.yellow, },                     -- inline code
+      ['@markup.link.url'] = { fg = colors.yellow, italic = true, }, -- urls
       ['@markup.link'] = { fg = colors.orange, bold = true, },
 
       ['@tag'] = { fg = colors.cyan, },
@@ -266,11 +295,11 @@ local function setup(configs)
       markdownOrderedListMarker = { fg = colors.red, },
       markdownRule = { fg = colors.comment, },
       ['@markup.heading.1.markdown'] = { link = 'rainbowcol1' },
-		['@markup.heading.2.markdown'] = { link = 'rainbowcol2' },
-		['@markup.heading.3.markdown'] = { link = 'rainbowcol3' },
-		['@markup.heading.4.markdown'] = { link = 'rainbowcol4' },
-		['@markup.heading.5.markdown'] = { link = 'rainbowcol5' },
-		['@markup.heading.6.markdown'] = { link = 'rainbowcol6' },
+      ['@markup.heading.2.markdown'] = { link = 'rainbowcol2' },
+      ['@markup.heading.3.markdown'] = { link = 'rainbowcol3' },
+      ['@markup.heading.4.markdown'] = { link = 'rainbowcol4' },
+      ['@markup.heading.5.markdown'] = { link = 'rainbowcol5' },
+      ['@markup.heading.6.markdown'] = { link = 'rainbowcol6' },
 
       --  Diff
       diffAdded = { fg = colors.green, },
@@ -306,7 +335,7 @@ local function setup(configs)
       TelescopeResultsDiffAdd = { fg = colors.green },
 
       -- Flash
-      FlashLabel =  { bg = colors.red, fg = colors.bright_white },
+      FlashLabel = { bg = colors.red, fg = colors.bright_white },
 
       -- NvimTree
       NvimTreeNormal = { fg = colors.fg, bg = colors.menu, },
@@ -521,8 +550,8 @@ local function setup(configs)
 
       -- Rainbow delimiter
       RainbowDelimiterRed = { fg = colors.fg },
-      RainbowDelimiterYellow = {fg = colors.pink },
-      RainbowDelimiterBlue = {fg = colors.cyan },
+      RainbowDelimiterYellow = { fg = colors.pink },
+      RainbowDelimiterBlue = { fg = colors.cyan },
       RainbowDelimiterOrange = { fg = colors.green },
       RainbowDelimiterGreen = { fg = colors.purple },
       RainbowDelimiterViolet = { fg = colors.orange },
@@ -556,12 +585,22 @@ local function setup(configs)
       -- mini.files
       MiniFilesNormal = { fg = colors.fg, bg = colors.menu },
       MiniFilesBorder = { fg = colors.purple, bg = colors.menu },
-      MiniFilesBorderModified = { },
+      MiniFilesBorderModified = {},
       MiniFilesCursorLine = { bg = colors.selection, },
       MiniFilesDirectory = { fg = colors.fg },
       MiniFilesFile = { fg = colors.fg },
       MiniFilesTitle = { fg = colors.fg },
       MiniFilesTitleFocused = { fg = colors.yellow },
+
+      MiniPickMatchCurrent = { bg = colors.selection },
+      -- MiniFilesBorder = { fg = colors.fg, bg = colors.bg },
+      -- MiniFilesBorderModified = { fg = colors.orange, bg = colors.bg },
+      -- MiniFilesCursorLine = { bg = colors.selection },
+      -- MiniFilesDirectory = { fg = colors.cyan, bg = colors.bg },
+      -- MiniFilesFile = { fg = colors.fg, bg = colors.bg },
+      -- MiniFilesNormal = { fg = colors.fg, bg = colors.bg },
+      -- MiniFilesTitle = { fg = colors.purple, bg = colors.bg, bold = true },
+      -- MiniFilesTitleFocused = { fg = colors.cyan, bg = colors.bg, bold = true },
 
       -- goolord/alpha-nvim
       AlphaHeader = { fg = colors.purple },

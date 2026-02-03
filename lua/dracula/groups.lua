@@ -113,10 +113,10 @@ local function setup(configs)
       StatusLineTermNC = { fg = colors.comment, },
 
       Directory = { fg = colors.cyan, },
-      DiffAdd = { bg = darken(colors.bright_green, 0.15, colors.bg) },
-      DiffDelete = { fg = darken(colors.bright_red, 0.15, colors.bg) },
-      DiffChange = { bg = darken(colors.comment, 0.15, colors.bg) },
-      DiffText = { bg = darken(colors.comment, 0.50, colors.bg) },
+      DiffAdd = { fg = colors.green },
+      DiffDelete = { fg = colors.red },
+      DiffChange = { fg = colors.comment, bg = colors.visual },
+      DiffText = { fg = colors.fg },
 
       illuminatedWord = { bg = darken(colors.comment, 0.65, colors.bg) },
       illuminatedCurWord = { bg = darken(colors.comment, 0.65, colors.bg) },

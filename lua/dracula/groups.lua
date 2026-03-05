@@ -47,6 +47,41 @@ local function darken(hex, amount, bg)
    return blend(hex, bg, amount)
 end
 
+local function relative_luminance(hex)
+   local rgb = hex_to_rgb(hex)
+
+   local function to_linear(channel)
+      local value = channel / 255
+      if value <= 0.03928 then
+         return value / 12.92
+      end
+
+      return ((value + 0.055) / 1.055) ^ 2.4
+   end
+
+   local r = to_linear(rgb[1])
+   local g = to_linear(rgb[2])
+   local b = to_linear(rgb[3])
+
+   return (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
+end
+
+local function diff_blend_strengths_for_bg(bg)
+   if relative_luminance(bg) < 0.5 then
+      return {
+         subtle = 0.16,
+         medium = 0.40,
+         strong = 0.50,
+      }
+   end
+
+   return {
+      subtle = 0.24,
+      medium = 0.32,
+      strong = 0.45,
+   }
+end
+
 
 ---setup highlight groups
 ---@param configs DraculaConfig
@@ -55,6 +90,11 @@ end
 local function setup(configs)
    local colors = configs.colors
    assert(colors ~= nil, "Must pass colors")
+
+   local diff_blend_strengths = diff_blend_strengths_for_bg(colors.bg)
+   local diff_subtle = diff_blend_strengths.subtle
+   local diff_medium = diff_blend_strengths.medium
+   local diff_strong = diff_blend_strengths.strong
 
    local endOfBuffer = {
       fg = configs.show_end_of_buffer and colors.visual or colors.bg,
@@ -113,10 +153,10 @@ local function setup(configs)
       StatusLineTermNC = { fg = colors.comment, },
 
       Directory = { fg = colors.cyan, },
-      DiffAdd = { bg = colors.bright_green },
-      DiffDelete = { bg = colors.bright_red },
-      DiffChange = { fg = colors.comment, bg = colors.visual },
-      DiffText = { fg = colors.fg },
+      DiffAdd = { fg = colors.fg, bg = blend(colors.green, colors.bg, diff_subtle) },
+      DiffDelete = { fg = colors.fg, bg = blend(colors.red, colors.bg, diff_subtle) },
+      DiffChange = { fg = colors.fg, bg = blend(colors.comment, colors.bg, diff_medium) },
+      DiffText = { fg = colors.fg, bg = blend(colors.orange, colors.bg, diff_strong) },
 
       illuminatedWord = { bg = darken(colors.comment, 0.65, colors.bg) },
       illuminatedCurWord = { bg = darken(colors.comment, 0.65, colors.bg) },
